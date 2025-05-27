@@ -7,3 +7,5 @@ forge-std/=lib/forge-std/src/
 foundry-devops/=lib/foundry-devops/
 solmate/=lib/solmate/src/
 weird-erc20/=lib/solmate/lib/weird-erc20/src/
+@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/
+

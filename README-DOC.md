@@ -6,6 +6,8 @@ $ forge init --force
 $ forge install smartcontractkit/chainlink@42c74fcd30969bca26a9aadc07463d1c2f473b8c
 $ forge remappings>remappings.txt
 $ forge build
+$ forge test --mt testRaffleInitializesInOpenState -vv
+ 
 `````
 
 
