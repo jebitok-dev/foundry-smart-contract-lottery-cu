@@ -10,6 +10,7 @@ $ forge test --mt testRaffleInitializesInOpenState -vv
  
 `````
 
+- Check path: `foundry-smart-contract-lottery-cu/lib/chainlink/contracts/src/v0.8/vrf/`
 
 ## Chainlink & Solidity Quizes
 - What primary function does Chainlink VRF (Verifiable Random Function) serve for smart contracts? `To provide a secure and verifiable source of randomness.`

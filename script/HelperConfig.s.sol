@@ -31,6 +31,13 @@ contract HelperConfig is CodeConstants, Script {
     mapping(uint256 chainId => NetworkConfig) public networkConfigs;
 
     /*//////////////////////////////////////////////////////////////
+                               CONSTANTS
+    //////////////////////////////////////////////////////////////*/
+    uint96 public constant MOCK_BASE_FEE = 0.25 ether;
+    uint96 public constant MOCK_GAS_PRICE_LINK = 1e9;
+    int256 public constant MOCK_WEI_PER_UNIT_LINK = 4e15;
+
+    /*//////////////////////////////////////////////////////////////
                                FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     constructor() {
@@ -95,7 +102,7 @@ contract HelperConfig is CodeConstants, Script {
             interval: 30, // 30 seconds
             vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            callbackGasLimit: 500000, // 500,000 gas
+            callbackGasLimit: 500_000, // 500,000 gas
             subscriptionId: 0
         });
     }
@@ -111,7 +118,7 @@ contract HelperConfig is CodeConstants, Script {
         });
     }
 
-    function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
+    function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory anvilNetworkConfig) {
         // Check to see if we set an active network localNetworkConfig
         if (localNetworkConfig.vrfCoordinator != address(0)) {
             return localNetworkConfig;
@@ -119,19 +126,20 @@ contract HelperConfig is CodeConstants, Script {
 
         console2.log(unicode"⚠️ You have deployed a mock contract!");
         console2.log("Make sure this was intentional");
+
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock vrfCoordinatorV2_5Mock = new VRFCoordinatorV2_5Mock(
-            0.25 ether, // base fee
-            1e9, // gas price link
-            4e15 // wei per unit link
+        VRFCoordinatorV2_5Mock vrfCoordinatorMock = new VRFCoordinatorV2_5Mock(
+            MOCK_BASE_FEE,
+            MOCK_GAS_PRICE_LINK,
+            MOCK_WEI_PER_UNIT_LINK
         );
-        uint256 subscriptionId = vrfCoordinatorV2_5Mock.createSubscription();
+        uint64 subscriptionId = uint64(vrfCoordinatorMock.createSubscription());
         vm.stopBroadcast();
 
         localNetworkConfig = NetworkConfig({
             entranceFee: 0.01 ether,
             interval: 30, // 30 seconds
-            vrfCoordinator: address(vrfCoordinatorV2_5Mock),
+            vrfCoordinator: address(vrfCoordinatorMock),
             gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c, // doesn't really matter
             callbackGasLimit: 500000, // 500,000 gas
             subscriptionId: subscriptionId
