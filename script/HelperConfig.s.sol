@@ -41,7 +41,11 @@ contract HelperConfig is CodeConstants, Script {
                                FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     constructor() {
-        networkConfigs[ETH_SEPOLIA_CHAIN_ID] = getSepoliaEthConfig();
+        if (block.chainid == 11155111) {
+            localNetworkConfig = getSepoliaEthConfig();
+        } else {
+            localNetworkConfig = getOrCreateAnvilEthConfig();
+        }
     }
 
     function getConfig() public pure returns (
