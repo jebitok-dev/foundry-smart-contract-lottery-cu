@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.30;
 
 import {LinkToken} from "../test/mocks/LinkToken.sol";
 import {Script, console2} from "forge-std/Script.sol";
@@ -47,6 +47,15 @@ contract HelperConfig is CodeConstants, Script {
             localNetworkConfig = getOrCreateAnvilEthConfig();
         }
     }
+
+    /**
+    * modifier onlyValidConsumer(uint64 _subId, address _consumer) {
+    *    if (!consumerIsAdded(_subId, _consumer)) {
+    *        revert InvalidConsumer();
+    *    }
+    *    _;
+    * } 
+    */
 
     function getConfig() public pure returns (
         uint256 entranceFee,

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.30;
 
 import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {Raffle} from "../../src/Raffle.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {VRFCoordinatorV2Interface} from "chainlink/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 
 contract RaffleTest is Test {
     Raffle public raffle;
@@ -73,6 +74,31 @@ contract RaffleTest is Test {
         // Act / Assert
         vm.expectEmit(true, false, false, false, address(raffle));
         emit Raffle.EnteredRaffle(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+    }
+
+    function testDontAllowPlayersToEnterWhileRaffleIsCalculating() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        
+        // Warp time forward and roll block number
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        
+        // Mock the VRF Coordinator to prevent revert
+        vm.mockCall(
+            address(vrfCoordinator),
+            abi.encodeWithSelector(VRFCoordinatorV2Interface.requestRandomWords.selector),
+            abi.encode(1)
+        );
+        
+        // Act / Assert
+        raffle.performUpkeep("");
+        
+        // Try to enter again
+        vm.expectRevert(Raffle.Raffle__RaffleNotOpen.selector);
+        vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
     }
 }
