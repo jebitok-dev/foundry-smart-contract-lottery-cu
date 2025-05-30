@@ -40,7 +40,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     bytes32 private immutable i_gasLane;
 
-    uint256 private immutable i_subscriptionId;
+    uint64 private immutable i_subscriptionId;
 
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
 
@@ -67,7 +67,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         uint256 interval,
         address vrfCoordinator,
         bytes32 gasLane,
-        uint256 subscriptionId,
+        uint64 subscriptionId,
         uint32 callbackGasLimit
     ) VRFConsumerBaseV2(vrfCoordinator) {
         i_entranceFee = entranceFee;

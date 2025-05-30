@@ -15,12 +15,13 @@ contract HelperConfig is CodeConstants, Script {
     error HelperConfig__InvalidChainId();
 
     struct NetworkConfig {
-        uint256 subscriptionId;
+        uint64 subscriptionId;
         bytes32 gasLane;
         uint256 interval;
         uint256 entranceFee;
         uint32 callbackGasLimit;
         address vrfCoordinator;
+        address linkToken;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -62,7 +63,7 @@ contract HelperConfig is CodeConstants, Script {
         uint256 interval,
         address vrfCoordinator,
         bytes32 gasLane,
-        uint64 subscriptionId, // Make sure it's uint64
+        uint64 subscriptionId,
         uint32 callbackGasLimit
     ) {
         entranceFee = 0.01 ether;
@@ -101,7 +102,8 @@ contract HelperConfig is CodeConstants, Script {
             interval: 30, // 30 seconds
             entranceFee: 0.01 ether,
             callbackGasLimit: 500000, // 500,000 gas
-            vrfCoordinator: 0x271682DEB8C4E0901D1a1550aD2e64D568E69909
+            vrfCoordinator: 0x271682DEB8C4E0901D1a1550aD2e64D568E69909,
+            linkToken: 0x514910771AF9Ca656af840dff83E8264EcF986CA
         });
     }
 
@@ -116,7 +118,8 @@ contract HelperConfig is CodeConstants, Script {
             vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             callbackGasLimit: 500_000, // 500,000 gas
-            subscriptionId: 0
+            subscriptionId: 0,
+            linkToken: 0x779877A7B0D9E8603169DdbD7836e478b4624789
         });
     }
 
@@ -127,11 +130,12 @@ contract HelperConfig is CodeConstants, Script {
             vrfCoordinator: address(0),
             gasLane: "",
             callbackGasLimit: 500000,
-            subscriptionId: 0
+            subscriptionId: 0,
+            linkToken: address(0)
         });
     }
 
-    function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory anvilNetworkConfig) {
+    function getOrCreateAnvilEthConfig() internal returns (NetworkConfig memory) {
         // Check to see if we set an active network localNetworkConfig
         if (localNetworkConfig.vrfCoordinator != address(0)) {
             return localNetworkConfig;
@@ -146,6 +150,7 @@ contract HelperConfig is CodeConstants, Script {
             MOCK_GAS_PRICE_LINK,
             MOCK_WEI_PER_UNIT_LINK
         );
+        LinkToken linkToken = new LinkToken();
         uint64 subscriptionId = uint64(vrfCoordinatorMock.createSubscription());
         vm.stopBroadcast();
 
@@ -155,7 +160,8 @@ contract HelperConfig is CodeConstants, Script {
             vrfCoordinator: address(vrfCoordinatorMock),
             gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c, // doesn't really matter
             callbackGasLimit: 500000, // 500,000 gas
-            subscriptionId: subscriptionId
+            subscriptionId: subscriptionId,
+            linkToken: address(linkToken)
         });
 
         return localNetworkConfig;
