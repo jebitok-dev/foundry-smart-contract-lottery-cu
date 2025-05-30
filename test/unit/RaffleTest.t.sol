@@ -101,4 +101,40 @@ contract RaffleTest is Test {
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
     }
+
+    function testCheckUpkeepReturnsFalseIfItHasNoBalance() public {
+        // Arrange
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        // Act
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
+
+        // Assert
+        assert(!upkeepNeeded);
+    }
+
+    function testCheckUpkeepReturnsFalseIfRaffleIsntOpen() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        // Mock the VRF Coordinator to prevent revert
+        vm.mockCall(
+            address(vrfCoordinator),
+            abi.encodeWithSelector(VRFCoordinatorV2Interface.requestRandomWords.selector),
+            abi.encode(1)
+        );
+
+        // Act
+        raffle.performUpkeep("");
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+
+        // Assert
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
+        assert(raffleState == Raffle.RaffleState.CALCULATING);
+        assert(upkeepNeeded == false);
+    }
 }
