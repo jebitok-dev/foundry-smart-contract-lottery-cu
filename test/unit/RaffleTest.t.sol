@@ -19,6 +19,8 @@ contract RaffleTest is Test {
     bytes32 gasLane;
     uint256 subscriptionId;
     uint32 callbackGasLimit;
+    address linkToken;
+    uint256 deployerKey;
 
     address public PLAYER = makeAddr("player");
     uint256 public constant STARTING_USER_BALANCE = 10 ether;
@@ -26,14 +28,15 @@ contract RaffleTest is Test {
     function setUp() external {
         DeployRaffle deployer = new DeployRaffle();
         (raffle, helperConfig) = deployer.deployContract();
-        (
-            entranceFee,
-            interval,
-            vrfCoordinator,
-            gasLane,
-            subscriptionId,
-            callbackGasLimit
-        ) = helperConfig.getConfig();
+        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
+        entranceFee = config.entranceFee;
+        interval = config.interval;
+        vrfCoordinator = config.vrfCoordinator;
+        gasLane = config.gasLane;
+        subscriptionId = config.subscriptionId;
+        callbackGasLimit = config.callbackGasLimit;
+        linkToken = config.linkToken;
+        deployerKey = config.deployerKey;
         vm.deal(PLAYER, STARTING_USER_BALANCE);
     }
 
@@ -158,8 +161,17 @@ contract RaffleTest is Test {
         // Act
         vm.recordLogs();
         raffle.performUpkeep(""); // emits requestId
-        Vm.Log[] memory entries = vm.getRecordedLogs();
+        Vm.Log[] memory logs = vm.getRecordedLogs();
         
+        // Find the requestId from the logs
+        uint256 requestId;
+        for (uint256 i = 0; i < logs.length; i++) {
+            if (logs[i].topics[0] == keccak256("RandomWordsRequested(bytes32,uint256,uint256,uint64,uint16,uint32,uint32,address)")) {
+                requestId = uint256(logs[i].topics[1]);
+                break;
+            }
+        }
+
         // Assert
         Raffle.RaffleState raffleState = raffle.getRaffleState();
         assert(uint(raffleState) == 1); // 0 = open, 1 = calculating
@@ -194,13 +206,13 @@ contract RaffleTest is Test {
         // Act
         vm.recordLogs();
         raffle.performUpkeep(""); // emits requestId
-        Vm.Log[] memory entries = vm.getRecordedLogs();
+        Vm.Log[] memory logs = vm.getRecordedLogs();
         
         // Find the requestId from the logs
         uint256 requestId;
-        for (uint256 i = 0; i < entries.length; i++) {
-            if (entries[i].topics[0] == keccak256("RandomWordsRequested(bytes32,uint256,uint256,uint64,uint16,uint32,uint32,address)")) {
-                requestId = uint256(entries[i].topics[1]);
+        for (uint256 i = 0; i < logs.length; i++) {
+            if (logs[i].topics[0] == keccak256("RandomWordsRequested(bytes32,uint256,uint256,uint64,uint16,uint32,uint32,address)")) {
+                requestId = uint256(logs[i].topics[1]);
                 break;
             }
         }

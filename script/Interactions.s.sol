@@ -10,15 +10,8 @@ import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 contract CreateSubscription is Script {
     function createSubscriptionUsingConfig() public returns (uint64) {
         HelperConfig helperConfig = new HelperConfig();
-        (
-            ,
-            ,
-            address vrfCoordinator,
-            ,
-            ,
-        ) = helperConfig.getConfig();
-
-        return createSubscription(vrfCoordinator);
+        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
+        return createSubscription(config.vrfCoordinator);
     }
 
     function createSubscription(address vrfCoordinator) public returns (uint64) {
@@ -41,16 +34,8 @@ contract FundSubscription is Script, CodeConstants {
 
     function fundSubscriptionUsingConfig() public {
         HelperConfig helperConfig = new HelperConfig();
-        (
-            ,
-            ,
-            address vrfCoordinator,
-            ,
-            uint64 subscriptionId,
-            uint32 callbackGasLimit
-        ) = helperConfig.getConfig();
-
-        fundSubscription(vrfCoordinator, subscriptionId);
+        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
+        fundSubscription(config.vrfCoordinator, config.subscriptionId);
     }
 
     function fundSubscription(
@@ -93,15 +78,8 @@ contract AddConsumer is Script {
 
     function addConsumerUsingConfig(address raffle) public {
         HelperConfig helperConfig = new HelperConfig();
-        (
-            ,
-            ,
-            address vrfCoordinator,
-            ,
-            uint64 subscriptionId,
-            uint32 callbackGasLimit
-        ) = helperConfig.getConfig();
-        addConsumer(raffle, vrfCoordinator, subscriptionId);
+        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
+        addConsumer(raffle, config.vrfCoordinator, config.subscriptionId);
     }
 
     function run() external {

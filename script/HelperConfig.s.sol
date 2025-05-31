@@ -14,6 +14,8 @@ contract HelperConfig is CodeConstants, Script {
     
     error HelperConfig__InvalidChainId();
 
+    uint256 constant DEFAULT_ANVIL_KEY = uint256(uint160(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266));
+
     struct NetworkConfig {
         uint64 subscriptionId;
         bytes32 gasLane;
@@ -22,6 +24,7 @@ contract HelperConfig is CodeConstants, Script {
         uint32 callbackGasLimit;
         address vrfCoordinator;
         address linkToken;
+        uint256 deployerKey;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -58,20 +61,8 @@ contract HelperConfig is CodeConstants, Script {
     * } 
     */
 
-    function getConfig() public pure returns (
-        uint256 entranceFee,
-        uint256 interval,
-        address vrfCoordinator,
-        bytes32 gasLane,
-        uint64 subscriptionId,
-        uint32 callbackGasLimit
-    ) {
-        entranceFee = 0.01 ether;
-        interval = 30;
-        vrfCoordinator = address(0x123);
-        gasLane = bytes32(uint256(0x123));
-        subscriptionId = uint64(123); // Mock or real sub ID
-        callbackGasLimit = 500000;
+    function getConfig() public returns (NetworkConfig memory) {
+        return getConfigByChainId(block.chainid);
     }
 
     function setConfig(
@@ -103,13 +94,14 @@ contract HelperConfig is CodeConstants, Script {
             entranceFee: 0.01 ether,
             callbackGasLimit: 500000, // 500,000 gas
             vrfCoordinator: 0x271682DEB8C4E0901D1a1550aD2e64D568E69909,
-            linkToken: 0x514910771AF9Ca656af840dff83E8264EcF986CA
+            linkToken: 0x514910771AF9Ca656af840dff83E8264EcF986CA,
+            deployerKey: 0
         });
     }
 
     function getSepoliaEthConfig()
         public
-        pure
+        view
         returns (NetworkConfig memory)
     {
         return NetworkConfig({
@@ -118,8 +110,9 @@ contract HelperConfig is CodeConstants, Script {
             vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             callbackGasLimit: 500_000, // 500,000 gas
-            subscriptionId: 0,
-            linkToken: 0x779877A7B0D9E8603169DdbD7836e478b4624789
+            subscriptionId: 1, // Using a smaller value for testing
+            linkToken: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
+            deployerKey: vm.envUint("SEPOLIA_PRIVATE_KEY")
         });
     }
 
@@ -131,7 +124,8 @@ contract HelperConfig is CodeConstants, Script {
             gasLane: "",
             callbackGasLimit: 500000,
             subscriptionId: 0,
-            linkToken: address(0)
+            linkToken: address(0),
+            deployerKey: 0
         });
     }
 
@@ -160,7 +154,8 @@ contract HelperConfig is CodeConstants, Script {
             gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c, // doesn't really matter
             callbackGasLimit: 500000, // 500,000 gas
             subscriptionId: subscriptionId,
-            linkToken: address(linkToken)
+            linkToken: address(linkToken),
+            deployerKey: DEFAULT_ANVIL_KEY
         });
 
         return localNetworkConfig;

@@ -32,4 +32,6 @@ This code is to create a proveably random smart contract lottery.
 
 * The randomness is used to find out who won, the prize is sent, raffle is reset.
 
-<br />
+`````
+$ anvil 
+`````
