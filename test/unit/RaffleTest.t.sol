@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.23;
 
 import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {Raffle} from "../../src/Raffle.sol";
@@ -167,10 +167,9 @@ contract RaffleTest is Test {
 
     function testFulfillRandomWordsPicksAWinnerResetsAndSendsMoney() public raffleEntredAndTimePassed {
         // Arrange
-
         uint256 additionalEntrants = 3;
         uint256 startingIndex = 1;
-        uint256 startingTimeStamp = raffle.getLastTimeStamp();
+        uint256 startingTimeStamp = raffle.getLatestTimeStamp();
 
         for (uint256 i = startingIndex; i < startingIndex + additionalEntrants; i++) {
             address player = address(uint160(i));
@@ -181,6 +180,9 @@ contract RaffleTest is Test {
         uint256 prize = entranceFee * (additionalEntrants + 1);
         address expectedWinner = address(uint160(startingIndex + 1)); // The second player
         uint256 winnerStartingBalance = expectedWinner.balance;
+
+        console.log("Expected winner:", expectedWinner);
+        console.log("Number of players:", raffle.getNumberOfPlayers());
 
         // Mock the VRF Coordinator to prevent revert
         vm.mockCall(
@@ -202,5 +204,38 @@ contract RaffleTest is Test {
                 break;
             }
         }
+
+        // Create an array with a specific random word that will select our expected winner
+        uint256[] memory randomWords = new uint256[](1);
+        // We want to select the second player (index 1)
+        // Since we have 4 players total (1 initial + 3 additional), we need a number that mod 4 = 1
+        randomWords[0] = 5; // 5 % 4 = 1, which will select the second player
+
+        console.log("Random word:", randomWords[0]);
+        console.log("Random word mod players:", randomWords[0] % raffle.getNumberOfPlayers());
+
+        // Pretend to be Chainlink VRF
+        VRFCoordinatorV2Mock(vrfCoordinator).fulfillRandomWordsWithOverride(
+            requestId,
+            address(raffle),
+            randomWords
+        );
+
+        // Assert
+        address recentWinner = raffle.getRecentWinner();
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+        uint256 winnerBalance = recentWinner.balance;
+        uint256 endingTimeStamp = raffle.getLatestTimeStamp();
+
+        console.log("Recent winner:", recentWinner);
+        console.log("Raffle state:", uint256(raffleState));
+        console.log("Winner balance:", winnerBalance);
+        console.log("Winner starting balance:", winnerStartingBalance);
+        console.log("Prize amount:", prize);
+
+        assert(expectedWinner == recentWinner);
+        assert(uint256(raffleState) == 0);
+        assert(winnerBalance == winnerStartingBalance + prize);
+        assert(endingTimeStamp > startingTimeStamp);
     }
 }

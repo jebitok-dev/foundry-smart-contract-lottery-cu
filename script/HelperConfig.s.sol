@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.23;
 
 import {LinkToken} from "../test/mocks/LinkToken.sol";
 import {Script, console2} from "forge-std/Script.sol";
-import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import {VRFCoordinatorV2Mock} from "chainlink/src/v0.8/vrf/mocks/VRFCoordinatorV2Mock.sol";
 
 abstract contract CodeConstants {
     uint256 public constant ETH_SEPOLIA_CHAIN_ID = 11155111;
@@ -145,10 +145,9 @@ contract HelperConfig is CodeConstants, Script {
         console2.log("Make sure this was intentional");
 
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock vrfCoordinatorMock = new VRFCoordinatorV2_5Mock(
+        VRFCoordinatorV2Mock vrfCoordinatorMock = new VRFCoordinatorV2Mock(
             MOCK_BASE_FEE,
-            MOCK_GAS_PRICE_LINK,
-            MOCK_WEI_PER_UNIT_LINK
+            MOCK_GAS_PRICE_LINK
         );
         LinkToken linkToken = new LinkToken();
         uint64 subscriptionId = uint64(vrfCoordinatorMock.createSubscription());
