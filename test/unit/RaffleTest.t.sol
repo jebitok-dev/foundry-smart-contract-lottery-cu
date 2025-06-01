@@ -47,7 +47,8 @@ contract RaffleTest is Test {
     function testRaffleRevertsWHenYouDontPayEnough() public {
         // Arrange
         vm.prank(PLAYER);
-        // Act / Assert
+
+        // Act / Accert
         vm.expectRevert(Raffle.Raffle__NotEnoughEthSent.selector);
         raffle.enterRaffle();
     }
@@ -249,5 +250,27 @@ contract RaffleTest is Test {
         assert(uint256(raffleState) == 0);
         assert(winnerBalance == winnerStartingBalance + prize);
         assert(endingTimeStamp > startingTimeStamp);
+    }
+
+    modifier skipFork() {
+        if (block.chainid != 31337){
+            return;
+        }
+        _;
+    }
+
+    function testFulfillRandomWordsCanOnlyBeCalledAfterPerformUpkeep(uint256 requestId)
+        public
+        raffleEntredAndTimePassed
+        skipFork
+    {
+        // Arrange
+        // Act / Assert
+        vm.expectRevert("nonexistent request");
+        // vm.mockCall could be used here...
+        VRFCoordinatorV2Mock(vrfCoordinator).fulfillRandomWords(
+            requestId,
+            address(raffle)
+        );
     }
 }
